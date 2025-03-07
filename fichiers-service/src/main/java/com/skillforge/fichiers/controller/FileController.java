@@ -1,7 +1,8 @@
 package com.skillforge.fichiers.controller;
 
-
+import com.skillforge.fichiers.entity.FileEntity;
 import com.skillforge.fichiers.model.FileFormat;
+import com.skillforge.fichiers.repository.FileRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -14,35 +15,39 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @RestController
 @RequestMapping("/files")
 public class FileController {
 
     private static final Logger log = LoggerFactory.getLogger(FileController.class);
-    private static final String DOSSIER_STOCKAGE_FICHIER = "uploads_files"; // Dossier où stocker les fichiers dans répertoire courant
+    private static final String DOSSIER_STOCKAGE_FICHIER = "uploads_files";
 
-    public FileController() throws Exception {
+    private final FileRepository fileRepository;
+
+    public FileController(FileRepository fileRepository) {
+        this.fileRepository = fileRepository;
         Path uploadPath = Paths.get(DOSSIER_STOCKAGE_FICHIER);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-            log.info("Le dossier de stockage a été créé avec succès : {}", DOSSIER_STOCKAGE_FICHIER);
+        try {
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+                log.info("Le dossier de stockage a été créé avec succès : {}", DOSSIER_STOCKAGE_FICHIER);
+            }
+        } catch (IOException e) {
+            log.error("Erreur lors de la création du dossier de stockage", e);
         }
     }
 
@@ -58,7 +63,17 @@ public class FileController {
             Path filePath = Paths.get(DOSSIER_STOCKAGE_FICHIER).resolve(file.getOriginalFilename());
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             log.info("Fichier {} uploadé avec succès !", file.getOriginalFilename());
-            return ResponseEntity.ok("Fichier " + file.getOriginalFilename() + " uploadé avec succès !");
+
+            FileEntity fileEntity = new FileEntity();
+            fileEntity.setFilename(file.getOriginalFilename());
+            fileEntity.setSize(file.getSize());
+            fileEntity.setFileType(file.getContentType());
+            fileEntity.setFilePath(filePath.toString());
+            fileEntity.setUploadedAt(LocalDateTime.now());
+
+            fileRepository.save(fileEntity);
+
+            return ResponseEntity.ok("Fichier " + file.getOriginalFilename() + " uploadé et enregistré en base !");
         } catch (Exception e) {
             log.error("Erreur lors de l'upload du fichier : {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de l'upload du fichier.");
@@ -120,17 +135,16 @@ public class FileController {
         Path filePath = Paths.get(DOSSIER_STOCKAGE_FICHIER);
 
         try (Stream<Path> stream = Files.list(filePath)) {
-            log.info("Erreur lors de la récupération de la liste de fichiers");
             List<String> listeFichier = stream
                     .map(Path::getFileName)
                     .map(Path::toString)
-                    .toList();
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok(listeFichier);
         } catch (IOException e) {
             log.error("Erreur lors de la récupération de la liste de fichiers : {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Collections.emptyList()); // Retourne une liste vide en cas d'erreur
+                    .body(Collections.emptyList());
         }
     }
 
@@ -202,7 +216,6 @@ public class FileController {
     public ResponseEntity<String> deleteFile(@PathVariable String filename) {
         Path filePath = Paths.get(DOSSIER_STOCKAGE_FICHIER).resolve(filename);
 
-        // Vérifier si le fichier existe
         if (!Files.exists(filePath)) {
             log.warn("Tentative de suppression d'un fichier inexistant : {}", filename);
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Le fichier " + filename + " n'existe pas.");
