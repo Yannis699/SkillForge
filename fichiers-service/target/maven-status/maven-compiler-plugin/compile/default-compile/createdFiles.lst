@@ -1,0 +1,6 @@
+com\skillforge\fichiers\controller\FileController.class
+com\skillforge\fichiers\model\FileFormat.class
+com\skillforge\fichiers\repository\FileRepository.class
+com\skillforge\fichiers\entity\FileEntity.class
+com\skillforge\fichiers\controller\TestController.class
+com\skillforge\fichiers\FichierServiceApplication.class
