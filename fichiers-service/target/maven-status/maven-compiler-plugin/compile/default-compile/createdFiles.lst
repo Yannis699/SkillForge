@@ -1,0 +1,4 @@
+com\skillforge\fichiers\controller\FileController.class
+com\skillforge\fichiers\model\FileFormat.class
+com\skillforge\fichiers\controller\TestController.class
+com\skillforge\fichiers\FichierServiceApplication.class
