@@ -19,6 +19,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -149,14 +151,14 @@ public class FileController {
 
         try {
             BasicFileAttributes attrs = Files.readAttributes(filePath, BasicFileAttributes.class);
-            String contentType = Files.probeContentType(filePath); // Type MIME (peut être null)
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
             Map<String, Object> metadata = new HashMap<>();
             metadata.put("Nom du fichier", filename);
             metadata.put("Taille (octets)", attrs.size());
-            metadata.put("Date de création", attrs.creationTime().toString());
+            metadata.put("Date de création", attrs.creationTime().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().format(formatter));
             metadata.put("Dernière modification", attrs.lastModifiedTime().toString());
-            metadata.put("Type MIME", contentType != null ? contentType : "Inconnu");
+
 
             log.info("Métadonnées récupérées pour le fichier : {}", filename);
             return ResponseEntity.ok(metadata);
