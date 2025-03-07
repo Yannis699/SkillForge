@@ -34,7 +34,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 public class FileController {
 
     private static final Logger log = LoggerFactory.getLogger(FileController.class);
-    private static final String DOSSIER_STOCKAGE_FICHIER = "uploads_files"; // Dossier où stocker les fichiers répertoire courant
+    private static final String DOSSIER_STOCKAGE_FICHIER = "uploads_files"; // Dossier où stocker les fichiers dans répertoire courant
 
     public FileController() throws Exception {
         Path uploadPath = Paths.get(DOSSIER_STOCKAGE_FICHIER);
@@ -47,7 +47,7 @@ public class FileController {
     @PostMapping(value = "/upload", consumes = "multipart/form-data")
     @Operation(summary = "Upload de fichier", description = "Permet d'uploader un fichier sur le serveur.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Fichier uploadé avec succès"),
+            @ApiResponse(responseCode = "200", description = "Fichier a été uploadé avec succès"),
             @ApiResponse(responseCode = "500", description = "Erreur lors de l'upload")
     })
     public ResponseEntity<String> uploadFile(@RequestParam("file") MultipartFile file) {
@@ -64,7 +64,7 @@ public class FileController {
     }
 
     @PostMapping(value = "/convert", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @Operation(summary = "Convertir un fichier", description = "Permet de convertir un fichier txt dans un autre format")
+    @Operation(summary = "Convertir un fichier", description = "Permet de convertir un fichier .txt au format CSV ou pdf")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Fichier converti avec succès"),
             @ApiResponse(responseCode = "400", description = "Format non supporté"),
@@ -80,39 +80,12 @@ public class FileController {
             String newFilename = originalFilename.replace(".txt", "." + format.name().toLowerCase());
             Path filePath = Paths.get("uploads_files").resolve(newFilename);
 
-            // Simulation de la conversion (copie simple)
+            // Simulation de la conversion
             Files.write(filePath, file.getBytes());
 
             return ResponseEntity.ok("Fichier converti avec succès ! Téléchargez-le à /files/download/" + newFilename);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la conversion.");
-        }
-    }
-
-    @DeleteMapping("/{filename}")
-    @Operation(summary = "suppression de fichier", description = "Permet de supprimer un fichier.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Fichier supprimé avec succès"),
-            @ApiResponse(responseCode = "500", description = "Erreur lors de la suppression du fichier"),
-            @ApiResponse(responseCode = "404", description = "Le fichier n'existe pas")
-    })
-
-    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
-        Path filePath = Paths.get(DOSSIER_STOCKAGE_FICHIER).resolve(filename);
-
-        // Vérifier si le fichier existe
-        if (!Files.exists(filePath)) {
-            log.warn("Tentative de suppression d'un fichier inexistant : {}", filename);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Le fichier " + filename + " n'existe pas.");
-        }
-
-        try {
-            Files.delete(filePath);
-            log.info("Fichier supprimé avec succès : {}", filename);
-            return ResponseEntity.ok("Fichier " + filename + " supprimé avec succès !");
-        } catch (IOException e) {
-            log.error("Erreur lors de la suppression du fichier : {}", filename, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la suppression du fichier.");
         }
     }
 
@@ -135,10 +108,8 @@ public class FileController {
         return ResponseEntity.ok("Le fichier " + filename + " a été trouvé !");
     }
 
-
-
     @GetMapping("/listAll")
-    @Operation(summary = "Obtenir tous les fichiers", description = "Récupération de l'ensemble des fichiers dans un dossier donné")
+    @Operation(summary = "Obtenir tous les fichiers", description = "Récupération de l'ensemble des fichiers dans le dossier courant")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Les fichiers sont bien récupérés"),
             @ApiResponse(responseCode = "500", description = "Erreur lors de la récupération des fichiers"),
@@ -146,7 +117,7 @@ public class FileController {
     public ResponseEntity<List<String>> getAllFiles() {
         Path filePath = Paths.get(DOSSIER_STOCKAGE_FICHIER);
 
-        try (Stream<Path> stream = Files.list(filePath)) {  // Utilisation d'un try-with-resources
+        try (Stream<Path> stream = Files.list(filePath)) {
             log.info("Erreur lors de la récupération de la liste de fichiers");
             List<String> listeFichier = stream
                     .map(Path::getFileName)
@@ -195,8 +166,6 @@ public class FileController {
         }
     }
 
-
-
     @GetMapping("/download/{filename}")
     public ResponseEntity<Resource> downloadFile(@PathVariable String filename) {
         log.info("Tentative de téléchargement du fichier : {}", filename);
@@ -217,6 +186,33 @@ public class FileController {
         } catch (Exception e) {
             log.error("Erreur lors du téléchargement du fichier {}: {}", filename, e.getMessage());
             return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @DeleteMapping("/{filename}")
+    @Operation(summary = "suppression de fichier", description = "Permet de supprimer un fichier.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fichier supprimé avec succès"),
+            @ApiResponse(responseCode = "500", description = "Erreur lors de la suppression du fichier"),
+            @ApiResponse(responseCode = "404", description = "Le fichier n'existe pas")
+    })
+
+    public ResponseEntity<String> deleteFile(@PathVariable String filename) {
+        Path filePath = Paths.get(DOSSIER_STOCKAGE_FICHIER).resolve(filename);
+
+        // Vérifier si le fichier existe
+        if (!Files.exists(filePath)) {
+            log.warn("Tentative de suppression d'un fichier inexistant : {}", filename);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Le fichier " + filename + " n'existe pas.");
+        }
+
+        try {
+            Files.delete(filePath);
+            log.info("Fichier supprimé avec succès : {}", filename);
+            return ResponseEntity.ok("Fichier " + filename + " supprimé avec succès !");
+        } catch (IOException e) {
+            log.error("Erreur lors de la suppression du fichier : {}", filename, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erreur lors de la suppression du fichier.");
         }
     }
 }
