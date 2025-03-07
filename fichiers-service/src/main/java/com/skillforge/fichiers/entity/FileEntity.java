@@ -31,4 +31,11 @@ public class FileEntity {
     @Column(name = "uploaded_at", nullable = false)
     private LocalDateTime uploadedAt;
 
+    public FileEntity(String filename, Long size, String fileType, String filePath, LocalDateTime uploadedAt) {
+        this.filename = filename;
+        this.size = size;
+        this.fileType = fileType;
+        this.filePath = filePath;
+        this.uploadedAt = uploadedAt;
+    }
 }
