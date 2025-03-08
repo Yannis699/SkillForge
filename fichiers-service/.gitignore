@@ -1,20 +1,20 @@
 *.txt
 *.csv
 
-# Fichiers compilés / build
+# Fichiers compilés
 target/
 
 # Logs générés
 logs/
 *.log
 
-# Fichiers d'upload (contenu utilisateur)
+# Fichiers d'upload
 uploads_files/
 
-# Fichiers de configuration sensibles
+# Fichiers de configuration
 application.properties
 
-# Fichiers spécifiques à l'IDE (IntelliJ, Eclipse, VS Code)
+# Fichiers spécifiques à l'IDE
 .idea/
 *.iml
 *.ipr
@@ -34,8 +34,6 @@ application.properties
 *.tar
 *.zip
 
-# Maven wrapper (optionnel, selon tes préférences)
-.mvn/
 
 # OS files
 .DS_Store
