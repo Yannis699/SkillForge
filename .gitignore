@@ -1,0 +1,37 @@
+# Fichiers compilés / build Maven
+target/
+
+# Dossiers d'upload de fichiers utilisateur
+uploads_files/
+
+# Dossier des fichiers de configuration sensibles (.env)
+.env
+
+# Dossiers IDEA (fichiers spécifiques à IntelliJ)
+.idea/
+
+# Logs applicatifs
+logs/
+
+# Autres fichiers ou dossiers temporaires
+*.log
+*.tmp
+*.jar.original
+*.txt
+*.csv
+*.pdf
+
+# Node.js dependencies
+node_modules/
+package-lock.json
+
+# Build files
+dist/
+out-tsc/
+
+# IDE
+.vscode/
+.DS_Store
+
+# Angular specific
+.angular/
