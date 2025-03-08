@@ -1,6 +1,8 @@
 *.txt
 *.csv
 
+.env
+
 # Fichiers compilés
 target/
 
