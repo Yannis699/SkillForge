@@ -1,0 +1,42 @@
+*.txt
+*.csv
+
+# Fichiers compilés / build
+target/
+
+# Logs générés
+logs/
+*.log
+
+# Fichiers d'upload (contenu utilisateur)
+uploads_files/
+
+# Fichiers de configuration sensibles
+application.properties
+
+# Fichiers spécifiques à l'IDE (IntelliJ, Eclipse, VS Code)
+.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+
+# Fichiers temporaires ou cachés
+*.tmp
+*.swp
+*~
+
+# Fichiers Docker inutiles
+*.container
+*.image
+*.tar
+*.zip
+
+# Maven wrapper (optionnel, selon tes préférences)
+.mvn/
+
+# OS files
+.DS_Store
+Thumbs.db
