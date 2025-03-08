@@ -1,2 +1,4 @@
-com\skillforge\api\controllers\HelloController.class
 com\skillforge\api\ApiServiceApplication.class
+com\skillforge\api\config\WebClientConfig.class
+com\skillforge\api\controllers\FichiersClientController.class
+com\skillforge\api\controllers\HelloController.class
